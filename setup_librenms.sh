@@ -157,4 +157,4 @@ cp /opt/librenms/misc/librenms.logrotate /etc/logrotate.d/librenms
 systemctl enable php$PHP_VERSION-fpm --now
 systemctl enable nginx --now
 
-curl https://127.0.0.1:80/install
+curl http://127.0.0.1:80/install
