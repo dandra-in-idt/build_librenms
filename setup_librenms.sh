@@ -1,11 +1,12 @@
 #!/bin/bash
 
-#Installer les dépendances de LibreNMS :
+#Installer les dÃ©pendances de LibreNMS :
 sudo apt install lsb-release ca-certificates wget acl curl fping git graphviz imagemagick mariadb-client mariadb-server mtr-tiny nginx-full nmap php-cli php-curl php-fpm php-gd php-gmp php-mbstring php-mysql php-snmp php-xml php-zip python3-dotenv python3-pymysql python3-redis python3-setuptools python3-systemd python3-pip rrdtool snmp snmpd unzip whois python3.11-venv -y
-#Créer l'utilisateur LibreNMS :
+#CrÃ©er l'utilisateur LibreNMS :
 
 sudo useradd librenms -d /opt/librenms -M -r -s "$(which bash)"
 sudo passwd librenms
+read -p "Meme password pour la bdd : " PASSWORD_BDD
 #Installer les fichiers LibreNMS depuis GitHub :
 
 cd /opt
@@ -75,7 +76,7 @@ collation-server      = utf8mb4_general_ci
 
 mysql -u root -p -e "
 CREATE DATABASE librenms CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
-CREATE USER 'librenms'@'localhost' IDENTIFIED BY 'password';
+CREATE USER 'librenms'@'localhost' IDENTIFIED BY '$PASSWORD_BDD';
 GRANT ALL PRIVILEGES ON librenms.* TO 'librenms'@'localhost';
 "
 rm /etc/php/8.2/fpm/pool.d/www.conf 
@@ -125,8 +126,7 @@ systemctl restart php8.2-fpm
 ln -s /opt/librenms/lnms /usr/bin/lnms
 cp /opt/librenms/misc/lnms-completion.bash /etc/bash_completion.d/
 
-cp /opt/librenms/snmpd.conf.example /etc/snmp/snmpd.conf
-nano /etc/snmp/snmpd.conf
+rm /etc/snmp/snmpd.conf
 
 echo "
                #ip_server_librenms  #community (password)
@@ -153,7 +153,8 @@ cp /opt/librenms/dist/librenms.cron /etc/cron.d/librenms
 sudo cp /opt/librenms/dist/librenms-scheduler.service /opt/librenms/dist/librenms-scheduler.timer /etc/systemd/system/
 sudo systemctl enable librenms-scheduler.timer
 sudo systemctl start librenms-scheduler.timer
-
 cp /opt/librenms/misc/librenms.logrotate /etc/logrotate.d/librenms
+systemctl enable php$PHP_VERSION-fpm --now
+systemctl enable nginx --now
 
 curl https://127.0.0.1:80/install
